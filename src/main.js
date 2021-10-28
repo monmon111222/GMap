@@ -13,8 +13,8 @@ Vue.use(BootstrapVue)
 Vue.use(IconsPlugin)
 Vue.use(VueGoogleMaps, {
   load: {
-    key: 'API KEY',
-    libraries: 'places',
+    key: 'AIzaSyDcmVP-lB6GPsXHZkkYYTB818azw8FPf_E',
+    libraries: ['geometry', 'places'],
     region: 'TW',
     lanuage: 'zh-TW'
   },
