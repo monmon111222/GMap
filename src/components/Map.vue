@@ -8,6 +8,7 @@
       @dragend="gMapDragEnd()"
       @zoom_changed="gMapZoomChanged()"
       id="map"
+      :options="{minZoom: 12, maxZoom: 16,restriction : mapRestriction}"
     >
       <GmapInfoWindow
         :position="infoWindowPos"
@@ -58,6 +59,15 @@ export default {
   },
   data() {
     return {
+      mapRestriction: {
+        latLngBounds: {
+          north: 26.097047150127677,
+          south: 24.0637052123361,
+          east: 121.6109608468628,
+          west: 121.53070915313721
+        }
+      },
+      mapBound: null,
       placeInfo: {},
       service: null,
       placeIdForWindow: '',
@@ -140,7 +150,6 @@ export default {
       for (let i = 0; i < this.markers.length; i++) {
         if ((i + 1) % 10 === 0) {
           await setTimeout(() => {
-            console.log('i setTimeout', i)
             // this.$refs.mapRef.$mapPromise.then(map => {
             //   const center = map.getBounds().getCenter()
             //   this.service = new google.maps.DirectionsService()
@@ -163,7 +172,6 @@ export default {
             // })
           }, 1000)
         } else {
-          console.log('i', i)
           // this.$refs.mapRef.$mapPromise.then(map => {
           //   const center = map.getBounds().getCenter()
           //   this.service = new google.maps.DirectionsService()
@@ -201,29 +209,43 @@ export default {
     },
     // 地圖縮放改變重新取得餐廳列表
     gMapZoomChanged() {
+      console.log('zoom')
       this.$refs.mapRef.$mapPromise.then(map => {
-        const bounds = map.getBounds()
-        const center = bounds.getCenter()
-        const ne = bounds.getNorthEast()
-        const r = 3963.0
-        const lat1 = center.lat() / 57.2958
-        const lon1 = center.lng() / 57.2958
-        const lat2 = ne.lat() / 57.2958
-        const lon2 = ne.lng() / 57.2958
-        const dis =
-          r *
-          Math.acos(
-            Math.sin(lat1) * Math.sin(lat2) +
-              Math.cos(lat1) * Math.cos(lat2) * Math.cos(lon2 - lon1)
-          )
-        this.infoWinOpen = false
-        this.getPlace(Math.round(dis * 1000), true)
+        console.log('gMapZoomChanged', map.getZoom())
+        // map.fitBounds(this.mapBound)
+        // const bounds = map.getBounds()
+        // const center = bounds.getCenter()
+        // const ne = bounds.getNorthEast()
+        // const r = 3963.0
+        // const lat1 = center.lat() / 57.2958
+        // const lon1 = center.lng() / 57.2958
+        // const lat2 = ne.lat() / 57.2958
+        // const lon2 = ne.lng() / 57.2958
+        // const dis =
+        //   r *
+        //   Math.acos(
+        //     Math.sin(lat1) * Math.sin(lat2) +
+        //       Math.cos(lat1) * Math.cos(lat2) * Math.cos(lon2 - lon1)
+        //   )
+        // this.infoWinOpen = false
+        // this.getPlace(Math.round(dis * 1000), true)
       })
     },
     // 地圖拖移改變重新取得餐廳列表
     gMapDragEnd() {
       this.infoWinOpen = false
-      this.getPlace(1500, true)
+      this.$refs.mapRef.$mapPromise.then(map => {
+        console.log('gMapDragEnd', map.getBounds())
+        // const google = window.google
+        // var bounds = new google.maps.LatLngBounds()
+        // var location = new google.maps.LatLng(25.017047150127677, 121.6109608468628)
+        // var location2 = new google.maps.LatLng(25.06370521233611, 121.53070915313721)
+        // bounds.extend(location2)
+        // bounds.extend(location)
+        // map.fitBounds(bounds)
+        // map.setCenter(bounds.getCenter())
+      })
+      // this.getPlace(1500, true)
     },
     // 點擊地標後call api
     async toggleInfoWindow(marker) {
@@ -234,28 +256,35 @@ export default {
     // 取得附近餐廳
     getPlace(radius, newCenter) {
       this.markers = []
-      const google = window.google
+
       this.$refs.mapRef.$mapPromise.then(map => {
-        this.service = new google.maps.places.PlacesService(map)
-        this.service.nearbySearch(
-          {
-            location: newCenter
-              ? map.getBounds().getCenter()
-              : { lat: this.coodinate.lat, lng: this.coodinate.lng },
-            radius: radius,
-            type: 'restaurant'
-          },
-          (results, status) => {
-            if (
-              status === google.maps.places.PlacesServiceStatus.OK &&
-              results
-            ) {
-              // 取得周邊餐廳
-              this.markers = results
-              this.getRoutes()
-            }
-          }
-        )
+        console.log('getPlace1', map.getBounds())
+        // const google = window.google
+        // var bounds = new google.maps.LatLngBounds()
+        // var location = new google.maps.LatLng(25.017047150127677, 121.6109608468628)
+        // var location2 = new google.maps.LatLng(25.06370521233611, 121.53070915313721)
+        // bounds.extend(location2)
+        // bounds.extend(location)
+        // map.fitBounds(bounds)
+        // this.service = new google.maps.places.PlacesService(map)
+        // this.service.nearbySearch(
+        //   {
+        //     location: newCenter ? map.getBounds().getCenter()
+        //       : { lat: this.coodinate.lat, lng: this.coodinate.lng },
+        //     radius: radius,
+        //     type: 'restaurant'
+        //   },
+        //   (results, status) => {
+        //     if (
+        //       status === google.maps.places.PlacesServiceStatus.OK &&
+        //       results
+        //     ) {
+        //       // 取得周邊餐廳
+        //       this.markers = results
+        //       this.getRoutes()
+        //     }
+        //   }
+        // )
       })
     },
     // 將placeId 傳給InfoWinow 取得餐廳詳細資訊
