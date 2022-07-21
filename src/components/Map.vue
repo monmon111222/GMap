@@ -8,7 +8,7 @@
       @dragend="gMapDragEnd()"
       @zoom_changed="gMapZoomChanged()"
       id="map"
-      :options="{minZoom: 12, maxZoom: 16,restriction : mapRestriction}"
+      :options="{ minZoom: 12, maxZoom: 16, restriction: mapRestriction }"
     >
       <GmapInfoWindow
         :position="infoWindowPos"
@@ -37,6 +37,7 @@
 <script>
 import InfoWindow from '@/components/InfoWindow.vue'
 import { commonMixin } from '@/common/js/mixins'
+import { getLocation } from '@/api/index.js'
 export default {
   name: 'Map',
   mixins: [commonMixin],
@@ -95,7 +96,14 @@ export default {
       }
     }
   },
-  created() {
+  async created() {
+    await getLocation({})
+      .then(res => {
+        console.log('res', res.data.rows)
+      })
+      .catch(error => {
+        console.log(error)
+      })
     // 取得現在位置
     this.$getLocation({})
       .then(coodinates => {
