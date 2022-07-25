@@ -2,7 +2,7 @@ import axios from 'axios'
 import QS from 'qs'
 
 axios.defaults.baseURL =
-  process.env.VUE_APP_API_URL || 'http://soilmove-backend.skysharp.com.tw'
+  process.env.VUE_APP_API_URL || 'https://soilmove-backend.skysharp.com.tw/'
 axios.defaults.headers.post['Content-Type'] = 'application/json;charset=UTF-8'
 
 /**
@@ -16,10 +16,10 @@ export function get(url, params) {
       .get(url, {
         params: params
       })
-      .then(res => {
+      .then((res) => {
         resolve(res)
       })
-      .catch(err => {
+      .catch((err) => {
         reject(err)
       })
   })
@@ -34,10 +34,10 @@ export function post(url, params) {
   return new Promise((resolve, reject) => {
     axios
       .post(url, QS.stringify(params))
-      .then(res => {
+      .then((res) => {
         resolve(res)
       })
-      .catch(err => {
+      .catch((err) => {
         reject(err)
       })
   })
