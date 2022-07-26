@@ -9,41 +9,32 @@
       @zoom_changed="gMapZoomChanged()"
       id="map"
       :options="{ minZoom: 12, maxZoom: 16, restriction: mapRestriction }"
+      mapTypeId='satellite'
     >
-      <GmapInfoWindow
-        :position="infoWindowPos"
-        :opened="infoWinOpen"
-        @closeclick="infoWinOpen = false"
-      >
-        <InfoWindow
-          v-if="markers.length >= 1"
-          :placeId="placeIdForWindow"
-          :placeInfo="placeInfo"
-          @open-info-window="openWindow"
-        ></InfoWindow>
-      </GmapInfoWindow>
-      <GmapMarker
+      <!-- <GmapMarker
         :key="m.place_id"
         v-for="m in markers"
         :position="m.geometry.location"
         :clickable="true"
         :draggable="true"
         @click="toggleInfoWindow(m)"
+      /> -->
+      <GmapMarker
+        :key="m.sn"
+        v-for="m in testLocation"
+        :position="{lat: parseFloat(m.SoilLocations[0].latitude), lng: parseFloat(m.SoilLocations[0].longitude)}"
+        :clickable="false"
+        :draggable="false"
+        :icon="{ url: m.model === '絞接式卡車' ? require('@/static/img/final_cat_car_0.png') : m.mdel === '挖土機' ? require('@/static/img/final_volvo_0.png') : require('@/static/img/final_other_0.png')}"
       />
     </GmapMap>
   </div>
 </template>
 
 <script>
-import InfoWindow from '@/components/InfoWindow.vue'
-import { commonMixin } from '@/common/js/mixins'
 import { getLocation } from '@/api/index.js'
 export default {
   name: 'Map',
-  mixins: [commonMixin],
-  components: {
-    InfoWindow
-  },
   props: {
     // 餐廳列表
     places: {
@@ -65,7 +56,7 @@ export default {
           north: 26.097047150127677,
           south: 24.0637052123361,
           east: 121.6109608468628,
-          west: 121.53070915313721
+          west: 121.52070915313721
         }
       },
       mapBound: null,
@@ -76,14 +67,14 @@ export default {
       infoWinCanOpen: true,
       infoContent: {},
       infoWindowPos: null,
-      infoWinOpen: false,
       map: null,
       markers: [],
       coodinate: {
         lat: 0,
         lng: 0
       },
-      distance: 0
+      distance: 0,
+      testLocation: []
     }
   },
   watch: {
@@ -96,10 +87,12 @@ export default {
       }
     }
   },
-  async created() {
-    await getLocation({})
+  created() {
+    getLocation({})
       .then(res => {
-        console.log('res', res.data.rows)
+        // console.log('res', res.data.rows)
+        this.testLocation.push(res.data.rows[0])
+        this.testLocation.forEach(element => console.log(element))
       })
       .catch(error => {
         console.log(error)
@@ -107,8 +100,10 @@ export default {
     // 取得現在位置
     this.$getLocation({})
       .then(coodinates => {
-        this.coodinate = coodinates
-        this.getPlace(1500, false)
+        this.coodinate = {
+          lat: 24.99429702758789,
+          lng: 121.52513885498047
+        }
       })
       .catch(error => alert(error))
   },
@@ -129,92 +124,6 @@ export default {
     }
   },
   methods: {
-    // 取得所有餐廳與現在位置的距離
-    async getRoutes(placeInfo) {
-      this.$emit('set-route', [])
-      // const google = window.google
-      // this.$refs.mapRef.$mapPromise.then(map => {
-      //   console.log('getRoutes map', map)
-      //   const center = map.getBounds().getCenter()
-      //   this.service = new google.maps.DirectionsService()
-      //   this.service.route(
-      //     {
-      //       origin: center,
-      //       destination: placeInfo.geometry.location,
-      //       travelMode: 'DRIVING'
-      //     },
-      //     (results, status) => {
-      //       if (status === google.maps.DirectionsStatus.OK) {
-      //         console.log('route status OK', results)
-      //       } else if (
-      //         status === google.maps.DirectionsStatus.OVER_QUERY_LIMIT
-      //       ) {
-      //         console.log('route status OVER_QUERY_LIMIT ')
-      //       }
-      //     }
-      //   )
-      // })
-
-      for (let i = 0; i < this.markers.length; i++) {
-        if ((i + 1) % 10 === 0) {
-          await setTimeout(() => {
-            // this.$refs.mapRef.$mapPromise.then(map => {
-            //   const center = map.getBounds().getCenter()
-            //   this.service = new google.maps.DirectionsService()
-            //   this.service.route(
-            //     {
-            //       origin: center,
-            //       destination: this.markers[i].geometry.location,
-            //       travelMode: 'DRIVING'
-            //     },
-            //     (results, status) => {
-            //       if (status === google.maps.DirectionsStatus.OK) {
-            //         console.log('route status OK', results)
-            //       } else if (
-            //         status === google.maps.DirectionsStatus.OVER_QUERY_LIMIT
-            //       ) {
-            //         console.log('route status OVER_QUERY_LIMIT ')
-            //       }
-            //     }
-            //   )
-            // })
-          }, 1000)
-        } else {
-          // this.$refs.mapRef.$mapPromise.then(map => {
-          //   const center = map.getBounds().getCenter()
-          //   this.service = new google.maps.DirectionsService()
-          //   this.service.route(
-          //     {
-          //       origin: center,
-          //       destination: this.markers[i].geometry.location,
-          //       travelMode: 'DRIVING'
-          //     },
-          //     (results, status) => {
-          //       if (status === google.maps.DirectionsStatus.OK) {
-          //         console.log('route status OK', results)
-          //       } else if (
-          //         status === google.maps.DirectionsStatus.OVER_QUERY_LIMIT
-          //       ) {
-          //         console.log('route status OVER_QUERY_LIMIT ')
-          //       }
-          //     }
-          //   )
-          // })
-        }
-      }
-    },
-    // 取得餐廳詳細資訊後開啟InfoWindow
-    openWindow(placeInfo) {
-      if (Object.keys(placeInfo).length !== 0) {
-        this.infoWindowPos = placeInfo.geometry.location
-        this.$refs.mapRef.$mapPromise.then(map => {
-          map.panTo(placeInfo.geometry.location)
-        })
-        this.infoWinOpen = true
-      } else {
-        this.infoWinOpen = false
-      }
-    },
     // 地圖縮放改變重新取得餐廳列表
     gMapZoomChanged() {
       console.log('zoom')
@@ -235,13 +144,10 @@ export default {
         //     Math.sin(lat1) * Math.sin(lat2) +
         //       Math.cos(lat1) * Math.cos(lat2) * Math.cos(lon2 - lon1)
         //   )
-        // this.infoWinOpen = false
-        // this.getPlace(Math.round(dis * 1000), true)
       })
     },
     // 地圖拖移改變重新取得餐廳列表
     gMapDragEnd() {
-      this.infoWinOpen = false
       this.$refs.mapRef.$mapPromise.then(map => {
         console.log('gMapDragEnd', map.getBounds())
         // const google = window.google
@@ -253,80 +159,9 @@ export default {
         // map.fitBounds(bounds)
         // map.setCenter(bounds.getCenter())
       })
-      // this.getPlace(1500, true)
     },
     // 點擊地標後call api
     async toggleInfoWindow(marker) {
-      this.infoWinOpen = !this.infoWinOpen
-      this.infoWindowPos = marker.geometry.location
-      await this.getPlaceInfo(marker.place_id)
-    },
-    // 取得附近餐廳
-    getPlace(radius, newCenter) {
-      this.markers = []
-
-      this.$refs.mapRef.$mapPromise.then(map => {
-        console.log('getPlace1', map.getBounds())
-        // const google = window.google
-        // var bounds = new google.maps.LatLngBounds()
-        // var location = new google.maps.LatLng(25.017047150127677, 121.6109608468628)
-        // var location2 = new google.maps.LatLng(25.06370521233611, 121.53070915313721)
-        // bounds.extend(location2)
-        // bounds.extend(location)
-        // map.fitBounds(bounds)
-        // this.service = new google.maps.places.PlacesService(map)
-        // this.service.nearbySearch(
-        //   {
-        //     location: newCenter ? map.getBounds().getCenter()
-        //       : { lat: this.coodinate.lat, lng: this.coodinate.lng },
-        //     radius: radius,
-        //     type: 'restaurant'
-        //   },
-        //   (results, status) => {
-        //     if (
-        //       status === google.maps.places.PlacesServiceStatus.OK &&
-        //       results
-        //     ) {
-        //       // 取得周邊餐廳
-        //       this.markers = results
-        //       this.getRoutes()
-        //     }
-        //   }
-        // )
-      })
-    },
-    // 將placeId 傳給InfoWinow 取得餐廳詳細資訊
-    getPlaceInfo(placeId) {
-      if (this.currentMidx !== placeId) {
-        this.placeIdForWindow = placeId
-        const google = window.google
-        this.$refs.mapRef.$mapPromise.then(map => {
-          this.service = new google.maps.places.PlacesService(map)
-          const request = {
-            placeId: placeId,
-            fields: [
-              'name',
-              'rating',
-              'formatted_phone_number',
-              'formatted_address',
-              'geometry',
-              'place_id'
-            ]
-          }
-
-          this.service.getDetails(request, (place, status) => {
-            if (
-              status === google.maps.places.PlacesServiceStatus.OK &&
-              place &&
-              place.geometry &&
-              place.geometry.location
-            ) {
-              this.placeInfo = place
-              console.log('place', place)
-            }
-          })
-        })
-      }
     }
   }
 }
